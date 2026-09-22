@@ -1,0 +1,27 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio and VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET generated files
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Logs and local diagnostics
+*.log
+*.tmp
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
