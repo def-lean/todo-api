@@ -29,6 +29,13 @@ app.MapGet("/todoitems/{id}", async (int id, TodoDb db) =>
         is Todo todo
             ? Results.Ok(todo)
             : Results.NotFound());
+//agregar endpoint para crear un nuevo todo
+app.MapPost("/todoitems", async (Todo todo, TodoDb db) => { 
+    db.Todos.Add(todo);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/todoitems/{todo.Id}", todo);
+});
 app.Run();
 
 record PersonaRequest(string nombre, int edad);
