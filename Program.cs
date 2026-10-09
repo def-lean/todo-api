@@ -23,6 +23,12 @@ app.MapGet("/todoitems", async (TodoDb db) =>
 
 app.MapGet("/todoitems/complete", async (TodoDb db) =>
     await db.Todos.Where(t => t.IsCompleted).ToListAsync());
+
+app.MapGet("/todoitems/{id}", async (int id, TodoDb db) => 
+    await db.Todos.FindAsync(id)
+        is Todo todo
+            ? Results.Ok(todo)
+            : Results.NotFound());
 app.Run();
 
 record PersonaRequest(string nombre, int edad);
