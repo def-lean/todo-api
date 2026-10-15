@@ -43,10 +43,8 @@ app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
 
     if (todo is null) return Results.NotFound();
 
-    todo.name = inputTodo.name;
+    todo.Name = inputTodo.Name;
     todo.IsCompleted = inputTodo.IsCompleted;
-    todo.secret = inputTodo.secret;
-    //todo.IsComplete = inputTodo.IsComplete;
 
     await db.SaveChangesAsync();
 
@@ -65,4 +63,3 @@ app.MapDelete("/todoitems/{id}", async (int id, TodoDb db) =>
     return Results.NotFound();
 });
 app.Run();
-
