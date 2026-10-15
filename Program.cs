@@ -36,6 +36,21 @@ app.MapPost("/todoitems", async (Todo todo, TodoDb db) => {
 
     return Results.Created($"/todoitems/{todo.Id}", todo);
 });
+//actualizar un elemento existente con PATCH
+app.MapPatch("/todoitems/{id}", async (int id, TodoPatchDto inputTodo, TodoDb db) =>
+{
+    var todo = await db.Todos.FindAsync(id);
+
+    if (todo is null) return Results.NotFound();
+
+    if (inputTodo.Name is not null) todo.Name = inputTodo.Name;
+    if (inputTodo.IsCompleted is not null) todo.IsCompleted = inputTodo.IsCompleted.Value;
+    if (inputTodo.Secret is not null) todo.Secret = inputTodo.Secret;
+
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+});
 //Actualizar un todo existente
 app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
 {
