@@ -45,6 +45,7 @@ app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
 
     todo.Name = inputTodo.Name;
     todo.IsCompleted = inputTodo.IsCompleted;
+    todo.Secret = inputTodo.Secret;
 
     await db.SaveChangesAsync();
 
