@@ -44,7 +44,9 @@ app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
     if (todo is null) return Results.NotFound();
 
     todo.name = inputTodo.name;
-    todo.IsComplete = inputTodo.IsComplete;
+    todo.IsCompleted = inputTodo.IsCompleted;
+    todo.secret = inputTodo.secret;
+    //todo.IsComplete = inputTodo.IsComplete;
 
     await db.SaveChangesAsync();
 
@@ -62,12 +64,5 @@ app.MapDelete("/todoitems/{id}", async (int id, TodoDb db) =>
 
     return Results.NotFound();
 });
-
-
 app.Run();
 
-record PersonaRequest(string nombre, int edad);
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
