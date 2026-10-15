@@ -17,27 +17,28 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+var todoitems = app.MapGroup("/todoitems");
 
-app.MapGet("/todoitems", async (TodoDb db) =>
+todoitems.MapGet("/", async (TodoDb db) =>
     await db.Todos.ToListAsync());
 
-app.MapGet("/todoitems/complete", async (TodoDb db) =>
+todoitems.MapGet("/complete", async (TodoDb db) =>
     await db.Todos.Where(t => t.IsCompleted).ToListAsync());
 
-app.MapGet("/todoitems/{id}", async (int id, TodoDb db) => 
+todoitems.MapGet("/{id}", async (int id, TodoDb db) => 
     await db.Todos.FindAsync(id)
         is Todo todo
             ? Results.Ok(todo)
             : Results.NotFound());
 //agregar endpoint para crear un nuevo todo
-app.MapPost("/todoitems", async (Todo todo, TodoDb db) => { 
+todoitems.MapPost("/", async (Todo todo, TodoDb db) => { 
     db.Todos.Add(todo);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/todoitems/{todo.Id}", todo);
+    return Results.Created($"/{todo.Id}", todo);
 });
 //actualizar un elemento existente con PATCH
-app.MapPatch("/todoitems/{id}", async (int id, TodoPatchDto inputTodo, TodoDb db) =>
+todoitems.MapPatch("/{id}", async (int id, TodoPatchDto inputTodo, TodoDb db) =>
 {
     var todo = await db.Todos.FindAsync(id);
 
@@ -52,7 +53,7 @@ app.MapPatch("/todoitems/{id}", async (int id, TodoPatchDto inputTodo, TodoDb db
     return Results.NoContent();
 });
 //Actualizar un todo existente
-app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
+todoitems.MapPut("/{id}", async (int id, Todo inputTodo, TodoDb db) =>
 {
     var todo = await db.Todos.FindAsync(id);
 
@@ -67,7 +68,7 @@ app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
     return Results.NoContent();
 });
 //Eliminar un todo existente
-app.MapDelete("/todoitems/{id}", async (int id, TodoDb db) =>
+todoitems.MapDelete("/{id}", async (int id, TodoDb db) =>
 {
     if (await db.Todos.FindAsync(id) is Todo todo)
     {
