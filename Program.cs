@@ -41,8 +41,10 @@ static async Task<IResult> GetCompletedTodos(TodoDb db)
 
 static async Task<IResult> GetTodo(int id, TodoDb db)
 {
-    var todo = await db.Todos.FindAsync(id);
-    return todo is null ? TypedResults.NotFound() : TypedResults.Ok(todo);
+    return await db.Todos.FindAsync(id)
+        is Todo todo
+            ? TypedResults.Ok(todo)
+            : TypedResults.NotFound();
 }
 
 static async Task<IResult> CreateTodo(Todo todo, TodoDb db)
