@@ -19,64 +19,74 @@ if (app.Environment.IsDevelopment())
 
 var todoitems = app.MapGroup("/todoitems");
 
-todoitems.MapGet("/", async (TodoDb db) =>
-    await db.Todos.ToListAsync());
+todoitems.MapGet("/", GetAllTodos);
+todoitems.MapGet("/complete", GetCompletedTodos);
+todoitems.MapGet("/{id}", GetTodo);
+todoitems.MapPost("/", CreateTodo); 
+todoitems.MapPatch("/{id}", PatchTodo);
+todoitems.MapPut("/{id}", UpdateTodo);  
+todoitems.MapDelete("/{id}", DeleteTodo);
 
-todoitems.MapGet("/complete", async (TodoDb db) =>
-    await db.Todos.Where(t => t.IsCompleted).ToListAsync());
+app.Run();
 
-todoitems.MapGet("/{id}", async (int id, TodoDb db) => 
-    await db.Todos.FindAsync(id)
-        is Todo todo
-            ? Results.Ok(todo)
-            : Results.NotFound());
-//agregar endpoint para crear un nuevo todo
-todoitems.MapPost("/", async (Todo todo, TodoDb db) => { 
-    db.Todos.Add(todo);
-    await db.SaveChangesAsync();
+static async Task<IResult> GetAllTodos(TodoDb db)
+{
+    return TypedResults.Ok(await db.Todos.ToListAsync());
+}
 
-    return Results.Created($"/{todo.Id}", todo);
-});
-//actualizar un elemento existente con PATCH
-todoitems.MapPatch("/{id}", async (int id, TodoPatchDto inputTodo, TodoDb db) =>
+static async Task<IResult> GetCompletedTodos(TodoDb db)
+{
+    return TypedResults.Ok(await db.Todos.Where(t => t.IsCompleted).ToListAsync());
+}
+
+static async Task<IResult> GetTodo(int id, TodoDb db)
 {
     var todo = await db.Todos.FindAsync(id);
+    return todo is null ? TypedResults.NotFound() : TypedResults.Ok(todo);
+}
 
-    if (todo is null) return Results.NotFound();
+static async Task<IResult> CreateTodo(Todo todo, TodoDb db)
+{
+    db.Todos.Add(todo);
+    await db.SaveChangesAsync();
+    return TypedResults.Created($"/{todo.Id}", todo);
+}
+static async Task<IResult> PatchTodo(int id, TodoPatchDto inputTodo, TodoDb db)
+{
+    var todo = await db.Todos.FindAsync(id);
+    if (todo is null) return TypedResults.NotFound();
 
     if (inputTodo.Name is not null) todo.Name = inputTodo.Name;
     if (inputTodo.IsCompleted is not null) todo.IsCompleted = inputTodo.IsCompleted.Value;
     if (inputTodo.Secret is not null) todo.Secret = inputTodo.Secret;
 
     await db.SaveChangesAsync();
+    return TypedResults.NoContent();
+}
 
-    return Results.NoContent();
-});
-//Actualizar un todo existente
-todoitems.MapPut("/{id}", async (int id, Todo inputTodo, TodoDb db) =>
+static async Task<IResult> UpdateTodo(int id, Todo inputTodo, TodoDb db)
 {
     var todo = await db.Todos.FindAsync(id);
-
-    if (todo is null) return Results.NotFound();
+    if (todo is null) return TypedResults.NotFound();
 
     todo.Name = inputTodo.Name;
     todo.IsCompleted = inputTodo.IsCompleted;
     todo.Secret = inputTodo.Secret;
 
     await db.SaveChangesAsync();
+    return TypedResults.NoContent();
+}
 
-    return Results.NoContent();
-});
-//Eliminar un todo existente
-todoitems.MapDelete("/{id}", async (int id, TodoDb db) =>
+static async Task<IResult> DeleteTodo(int id, TodoDb db)
 {
     if (await db.Todos.FindAsync(id) is Todo todo)
     {
         db.Todos.Remove(todo);
         await db.SaveChangesAsync();
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    return Results.NotFound();
-});
-app.Run();
+    return TypedResults.NotFound();
+}
+
+
