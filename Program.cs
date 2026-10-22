@@ -31,27 +31,33 @@ app.Run();
 
 static async Task<IResult> GetAllTodos(TodoDb db)
 {
-    return TypedResults.Ok(await db.Todos.ToListAsync());
+    return TypedResults.Ok(await db.Todos.Select(x => new TodoItemDTO(x)).ToArrayAsync());
 }
 
 static async Task<IResult> GetCompletedTodos(TodoDb db)
 {
-    return TypedResults.Ok(await db.Todos.Where(t => t.IsCompleted).ToListAsync());
+    return TypedResults.Ok(await db.Todos.Where(t => t.IsCompleted).Select(x => new TodoItemDTO(x)).ToListAsync());
 }
 
 static async Task<IResult> GetTodo(int id, TodoDb db)
 {
     return await db.Todos.FindAsync(id)
         is Todo todo
-            ? TypedResults.Ok(todo)
+            ? TypedResults.Ok(new TodoItemDTO(todo))
             : TypedResults.NotFound();
 }
 
-static async Task<IResult> CreateTodo(Todo todo, TodoDb db)
+static async Task<IResult> CreateTodo(TodoItemDTO todoItemDTO, TodoDb db)
 {
-    db.Todos.Add(todo);
+    var todoItem = new Todo
+    {
+        Name = todoItemDTO.Name,
+        IsCompleted = todoItemDTO.IsCompleted
+    };
+    db.Todos.Add(todoItem);
     await db.SaveChangesAsync();
-    return TypedResults.Created($"/{todo.Id}", todo);
+    todoItemDTO = new TodoItemDTO(todoItem);
+    return TypedResults.Created($"/todoitems/{todoItem.Id}", todoItemDTO);
 }
 static async Task<IResult> PatchTodo(int id, TodoPatchDto inputTodo, TodoDb db)
 {
@@ -66,15 +72,14 @@ static async Task<IResult> PatchTodo(int id, TodoPatchDto inputTodo, TodoDb db)
     return TypedResults.NoContent();
 }
 
-static async Task<IResult> UpdateTodo(int id, Todo inputTodo, TodoDb db)
+static async Task<IResult> UpdateTodo(int id, TodoItemDTO todoItemDTO, TodoDb db)
 {
     var todo = await db.Todos.FindAsync(id);
     if (todo is null) return TypedResults.NotFound();
 
-    todo.Name = inputTodo.Name;
-    todo.IsCompleted = inputTodo.IsCompleted;
-    todo.Secret = inputTodo.Secret;
-
+    todo.Name = todoItemDTO.Name;
+    todo.IsCompleted = todoItemDTO.IsCompleted;
+    
     await db.SaveChangesAsync();
     return TypedResults.NoContent();
 }
